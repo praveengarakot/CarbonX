@@ -148,12 +148,7 @@ export default function Home() {
   const connectWallet = async () => {
     const isFreighterAvailable = await isConnected();
     if (!isFreighterAvailable) {
-      alert("Freighter Wallet extension was not detected.\n\nPlease install Freighter from https://www.freighter.app/ to connect a real wallet. Connecting Sandbox Simulated Account instead.\n\nNOTE: If you are using Brave Browser, make sure to disable Brave Shields for localhost:3000 to allow Freighter to inject itself.");
-      const fallbackKey = roleAddresses[activeRole];
-      setWalletConnected(true);
-      setWalletAddress(fallbackKey);
-      addActivity(`✓ Sandbox Account Connected (Simulated Wallet): ${fallbackKey.slice(0, 12)}...`, "system");
-      refreshBalance(fallbackKey);
+      alert("Freighter Wallet extension was not detected.\n\nPlease install Freighter from https://www.freighter.app/ to connect a real wallet.\n\nNOTE: If you are using Brave Browser, make sure to disable Brave Shields for localhost:3000 to allow Freighter to inject itself.");
       return;
     }
     
@@ -164,12 +159,7 @@ export default function Home() {
       addActivity(`✓ Wallet connected via Freighter: ${key.slice(0, 12)}...`, "system");
       refreshBalance(key);
     } else {
-      alert("Freighter is installed, but the connection request was rejected or the wallet is locked. Please unlock Freighter and authorize the app. Connecting Sandbox Account instead.");
-      const fallbackKey = roleAddresses[activeRole];
-      setWalletConnected(true);
-      setWalletAddress(fallbackKey);
-      addActivity(`✓ Sandbox Account Connected (Simulated Wallet): ${fallbackKey.slice(0, 12)}...`, "system");
-      refreshBalance(fallbackKey);
+      alert("Freighter connection request was rejected or the wallet is locked. Please unlock your Freighter extension and authorize the app.");
     }
   };
 
@@ -587,12 +577,26 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={connectWallet}
-                className="bg-white text-black font-semibold text-xs px-4 py-2 rounded hover:bg-zinc-200 transition-colors"
-              >
-                Connect Wallet
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => {
+                    const fallbackKey = roleAddresses[activeRole];
+                    setWalletConnected(true);
+                    setWalletAddress(fallbackKey);
+                    addActivity(`✓ Sandbox Account Connected (Simulated Wallet): ${fallbackKey.slice(0, 12)}...`, "system");
+                    refreshBalance(fallbackKey);
+                  }}
+                  className="bg-transparent border border-[#262626] text-white font-semibold text-xs px-4 py-2 rounded hover:bg-white/5 transition-colors"
+                >
+                  Sandbox Mode
+                </button>
+                <button 
+                  onClick={connectWallet}
+                  className="bg-white text-black font-semibold text-xs px-4 py-2 rounded hover:bg-zinc-200 transition-colors"
+                >
+                  Connect Wallet
+                </button>
+              </div>
             )}
           </div>
         </header>
