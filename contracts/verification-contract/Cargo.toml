@@ -1,0 +1,18 @@
+[package]
+name = "verification-contract"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+carbon-registry = { path = "../carbon-registry" }
+marketplace-contract = { path = "../marketplace-contract" }
+settlement-contract = { path = "../settlement-contract" }
+retirement-contract = { path = "../retirement-contract" }
+
