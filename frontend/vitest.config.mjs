@@ -6,5 +6,10 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    server: {
+      deps: {
+        inline: ['@creit.tech/stellar-wallets-kit']
+      }
+    }
   },
 });

@@ -24,8 +24,41 @@ export const CONTRACTS = {
   retirement: "CCKX33TYO6FRCJV4BDOO73VVCKIOTF6DNZH6KPAWOXVBML7UGTK7V5JH"
 };
 
-import { isConnected, getAddress, signTransaction } from "@stellar/freighter-api";
+import freighterApi from "@stellar/freighter-api";
+const { isConnected, getAddress, signTransaction } = freighterApi;
+import { StellarWalletsKit, Networks as SwkNetworks } from "@creit.tech/stellar-wallets-kit";
+import { defaultModules } from "@creit.tech/stellar-wallets-kit/modules/utils";
 export { isConnected };
+
+let isKitInitialized = false;
+
+export function initKit() {
+  if (typeof window === "undefined") return;
+  if (isKitInitialized) return;
+  try {
+    StellarWalletsKit.init({
+      modules: defaultModules(),
+      network: SwkNetworks.TESTNET
+    });
+    isKitInitialized = true;
+  } catch (err) {
+    console.error("Failed to initialize StellarWalletsKit:", err);
+  }
+}
+
+export async function connectWithWalletsKit() {
+  initKit();
+  try {
+    const res = await StellarWalletsKit.authModal();
+    if (res && res.address) {
+      return res.address;
+    }
+    throw new Error("No address returned from wallets kit modal.");
+  } catch (err) {
+    console.error("Wallets kit connection error:", err);
+    throw err;
+  }
+}
 
 // Check if Freighter wallet is installed in browser
 export async function getFreighterPublicKey() {
@@ -94,16 +127,17 @@ export async function sendXlmTransaction({ from, to, amount }) {
 
     const xdrString = transaction.toXDR();
 
-    // 4. Request Freighter signature
-    const signResult = await signTransaction(xdrString, {
-      networkPassphrase: Networks.TESTNET
+    // 4. Request signature via Wallets Kit
+    initKit();
+    const signResult = await StellarWalletsKit.signTransaction(xdrString, {
+      networkPassphrase: Networks.TESTNET,
+      address: from
     });
 
-    if (signResult.error) {
-      throw new Error(signResult.error);
-    }
-
     const signedXdr = signResult.signedTxXdr;
+    if (!signedXdr) {
+      throw new Error(signResult.error || "Failed to retrieve signed XDR from wallets kit");
+    }
 
     // 5. Submit transaction to Horizon
     const submitBody = new FormData();

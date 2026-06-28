@@ -1,6 +1,30 @@
-import { expect, test, describe } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { expect, test, describe, vi } from 'vitest';
 import React from 'react';
+
+// Mock browser-only wallet integrations
+vi.mock('@stellar/freighter-api', () => ({
+  default: {
+    isConnected: () => Promise.resolve({ isConnected: false }),
+    getAddress: () => Promise.resolve({ address: "" }),
+    signTransaction: () => Promise.resolve({ signedTxXdr: "" }),
+  },
+  isConnected: () => Promise.resolve({ isConnected: false }),
+  getAddress: () => Promise.resolve({ address: "" }),
+  signTransaction: () => Promise.resolve({ signedTxXdr: "" }),
+}));
+
+vi.mock('@creit.tech/stellar-wallets-kit', () => ({
+  StellarWalletsKit: {
+    init: () => {},
+    authModal: () => Promise.resolve({ address: "" }),
+    signTransaction: () => Promise.resolve({ signedTxXdr: "" }),
+  },
+  Networks: {
+    TESTNET: "Test SDF Network ; September 2015"
+  }
+}));
+
+import { render, screen, fireEvent } from '@testing-library/react';
 import Home from '../src/app/page';
 
 describe('CarbonX Frontend App Tests', () => {
