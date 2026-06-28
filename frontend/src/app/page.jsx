@@ -281,7 +281,10 @@ export default function Home() {
             amount: item.amount,
             retired: false,
           };
-          setCredits(c => [...c, newCredit]);
+          setCredits(c => {
+            if (c.some(x => x.project_id === item.id)) return c;
+            return [...c, newCredit];
+          });
           
           addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation verify_project completed`, "system");
           addActivity(`✓ CarbonVerified: Project #${item.id} approved by Verifier`, "verified");
@@ -381,7 +384,10 @@ export default function Home() {
       });
 
       setCredits(prev => prev.filter(c => c.id !== creditId));
-      setRetiredCredits(prev => [...prev, { ...credit, retired: true, owner: buyerAddress }]);
+      setRetiredCredits(prev => {
+        if (prev.some(c => c.id === creditId)) return prev;
+        return [...prev, { ...credit, retired: true, owner: buyerAddress }];
+      });
 
       setCarbonScores(prev => {
         const current = prev[buyerAddress] || 50;
