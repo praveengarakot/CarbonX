@@ -21,15 +21,14 @@ export const CONTRACTS = {
   retirement: "CCKX33TYO6FRCJV4BDOO73VVCKIOTF6DNZH6KPAWOXVBML7UGTK7V5JH"
 };
 
+import { isConnected, getPublicKey } from "@stellar/freighter-api";
+
 // Check if Freighter wallet is installed in browser
 export async function getFreighterPublicKey() {
-  if (typeof window !== "undefined" && window.stellarDelay) {
-    // Freighter uses window.stellarDelay or window.freighter
-  }
-  // Try standard Freighter injection
   try {
-    if (typeof window !== "undefined" && window.freighter) {
-      const publicKey = await window.freighter.getPublicKey();
+    const connected = await isConnected();
+    if (connected) {
+      const publicKey = await getPublicKey();
       return publicKey;
     }
   } catch (err) {
