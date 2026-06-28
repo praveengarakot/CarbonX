@@ -135,7 +135,17 @@ export async function fundWithFriendbot(publicKey) {
   try {
     const res = await fetch(`https://friendbot.stellar.org/?addr=${publicKey}`);
     if (!res.ok) {
-      throw new Error("Friendbot service error");
+      let errMsg = "Friendbot service error";
+      try {
+        const errJson = await res.json();
+        errMsg = errJson.detail || errJson.title || errMsg;
+      } catch (_) {
+        try {
+          const errText = await res.text();
+          if (errText) errMsg = errText;
+        } catch (_) {}
+      }
+      throw new Error(errMsg);
     }
     const data = await res.json();
     return data;
