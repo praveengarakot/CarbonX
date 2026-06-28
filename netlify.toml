@@ -1,0 +1,13 @@
+[build]
+  # Directory where the Next.js frontend code is located
+  base = "frontend"
+  
+  # The command to build the Next.js app
+  command = "npm run build"
+  
+  # The output directory Next.js builds into by default
+  publish = ".next"
+
+# Automatically use the Netlify Next.js plugin for optimal serverless rendering
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -13,6 +13,27 @@ CarbonX is a production-grade decentralized application (dApp) built on the **St
 
 ---
 
+## 📸 Demo & Screenshots
+
+> **⚠️ NOTE FOR HACKATHON SUBMISSION**: Please insert your live demo video link and screenshots here before submitting!
+
+### Demo Video
+[![CarbonX Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+*(Replace `YOUR_VIDEO_ID` with your actual YouTube or Loom video ID)*
+
+### Application Screenshots
+
+**1. Dashboard Overview**
+*(Drop screenshot image here: `![Dashboard](path/to/image.png)`)*
+
+**2. Carbon Marketplace**
+*(Drop screenshot image here: `![Marketplace](path/to/image.png)`)*
+
+**3. Verification Portal**
+*(Drop screenshot image here: `![Verification](path/to/image.png)`)*
+
+---
+
 ## 🏛️ Smart Contract Architecture
 
 The project employs a modular production architecture, split into 5 core Soroban contracts:
@@ -138,3 +159,5 @@ The project is configured with a GitHub Actions workflow `.github/workflows/main
   * **Settlement**: `CDXRNXG33D2MGTWX7VZJ3WO5ORHPOUTQN2WGQP6AJNJQUBD7TSUWXN5P`
   * **Retirement**: `CCKX33TYO6FRCJV4BDOO73VVCKIOTF6DNZH6KPAWOXVBML7UGTK7V5JH`
 * **Transaction Hash for Contract Interaction**: `0x1f0d36675fd2884a229a8f273be8a74e50d60c49`
+
+
