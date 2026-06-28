@@ -1,7 +1,6 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
-import { getFreighterPublicKey, submitSorobanTx, CONTRACTS } from "../lib/stellar";
+import { getFreighterPublicKey, submitSorobanTx, CONTRACTS, fetchXlmBalance, sendXlmTransaction, fundWithFriendbot } from "../lib/stellar";
 
 export default function Home() {
   const [inApp, setInApp] = useState(false);
@@ -9,12 +8,23 @@ export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [activeRole, setActiveRole] = useState("developer"); // developer, buyer, verifier
-  
+  const [walletBalance, setWalletBalance] = useState("0.0000");
+  const [isRefreshingBalance, setIsRefreshingBalance] = useState(false);
+
   // Addresses mapping
   const roleAddresses = {
     developer: "GBDEVELOPERACME2R3M6R6PQA5VGD77B5XG2V6B5Y2B",
     buyer: "GBBUYERNEXUSCAPITAL3P4Q6T7Y5VWD88ZG4W6C3B2B",
     verifier: "GBVERIFIERSTELLARVERIFY4R5T7Y8U9I0O1P2Q3W4B",
+  };
+
+  const refreshBalance = async (addr) => {
+    const target = addr || walletAddress || roleAddresses[activeRole];
+    if (!target) return;
+    setIsRefreshingBalance(true);
+    const bal = await fetchXlmBalance(target);
+    setWalletBalance(bal);
+    setIsRefreshingBalance(false);
   };
 
   useEffect(() => {
@@ -24,10 +34,15 @@ export default function Home() {
       if (key) {
         setWalletConnected(true);
         setWalletAddress(key);
+        refreshBalance(key);
       }
     };
     autoConnect();
   }, []);
+
+  useEffect(() => {
+    refreshBalance();
+  }, [walletAddress, activeRole]);
 
   // State Management (Simulating the 5-contract Soroban state)
   const [projects, setProjects] = useState([
@@ -67,6 +82,8 @@ export default function Home() {
   const [newProjName, setNewProjName] = useState("");
   const [newProjAmount, setNewProjAmount] = useState("");
   const [listingPrices, setListingPrices] = useState({});
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
   const [txModal, setTxModal] = useState({
     isOpen: false,
     title: "",
@@ -139,6 +156,7 @@ export default function Home() {
       setWalletConnected(true);
       setWalletAddress(key);
       addActivity(`✓ Wallet connected via Freighter: ${key.slice(0, 12)}...`, "system");
+      refreshBalance(key);
     } else {
       if (isFreighterAvailable) {
         alert("Freighter is installed, but the connection request was rejected or the wallet is locked. Please unlock Freighter and authorize the app. Connecting Sandbox Account instead.");
@@ -147,13 +165,45 @@ export default function Home() {
       setWalletConnected(true);
       setWalletAddress(fallbackKey);
       addActivity(`✓ Sandbox Account Connected (Simulated Wallet): ${fallbackKey.slice(0, 12)}...`, "system");
+      refreshBalance(fallbackKey);
     }
   };
 
   const disconnectWallet = () => {
     setWalletConnected(false);
     setWalletAddress("");
+    setWalletBalance("0.0000");
     addActivity("Wallet disconnected", "system");
+  };
+
+  const handleFundAccount = async () => {
+    const target = walletAddress || roleAddresses[activeRole];
+    await runTxFlow("Fund Account via Friendbot", "friendbot :: request_funds", async () => {
+      await fundWithFriendbot(target);
+      await refreshBalance(target);
+      addActivity(`✓ Friendbot: Account ${target.slice(0, 10)}... funded with 10,000 XLM`, "system");
+      return { txHash: "Friendbot Success" };
+    });
+  };
+
+  const handleSendPayment = async (e) => {
+    e.preventDefault();
+    if (!recipientAddress || !paymentAmount) return;
+
+    const fromAddress = walletAddress || roleAddresses[activeRole];
+
+    await runTxFlow("Send XLM Payment", "stellar :: payment", async () => {
+      const res = await sendXlmTransaction({
+        from: fromAddress,
+        to: recipientAddress,
+        amount: parseFloat(paymentAmount)
+      });
+      addActivity(`✓ PaymentSuccess: Sent ${paymentAmount} XLM to ${recipientAddress.slice(0, 10)}...`, "system");
+      await refreshBalance(fromAddress);
+      setRecipientAddress("");
+      setPaymentAmount("");
+      return res;
+    });
   };
 
   // --- contract functions ---
@@ -501,12 +551,33 @@ export default function Home() {
 
           <div className="flex items-center gap-4">
             {walletConnected ? (
-              <div className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ffb4ab] animate-pulse" />
-                <span className="text-xs font-mono text-zinc-300">Freighter Wallet Linked</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 block animate-pulse" />
+                  <span className="text-xs font-mono text-zinc-300" title={walletAddress}>
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  </span>
+                </div>
+                <div className="text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white font-mono flex items-center gap-2">
+                  <span>{walletBalance} XLM</span>
+                  <button 
+                    onClick={() => refreshBalance()}
+                    className="text-[10px] text-[#8e9192] hover:text-white transition-colors"
+                    disabled={isRefreshingBalance}
+                    title="Refresh Balance"
+                  >
+                    {isRefreshingBalance ? "..." : "↻"}
+                  </button>
+                </div>
+                <button 
+                  onClick={handleFundAccount}
+                  className="bg-transparent border border-[#262626] text-white text-xs px-3 py-1.5 rounded hover:bg-white/5 transition-colors font-semibold"
+                >
+                  Fund XLM
+                </button>
                 <button 
                   onClick={disconnectWallet}
-                  className="text-xs text-zinc-500 hover:text-white underline transition-colors"
+                  className="text-xs text-[#8e9192] hover:text-white underline transition-colors"
                 >
                   Disconnect
                 </button>
@@ -647,6 +718,53 @@ export default function Home() {
                 </div>
 
               </div>
+
+              {/* Direct Payment Card */}
+              <div className="bg-[#111111] border border-[#262626] rounded-xl p-6 space-y-4 max-w-xl">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-white">payments</span>
+                  Stellar Testnet XLM Payment
+                </h3>
+                <p className="text-xs text-[#8e9192]">
+                  Send XLM directly from your Freighter wallet (or sandbox role) to any recipient on the Stellar Testnet.
+                </p>
+
+                <form onSubmit={handleSendPayment} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] uppercase tracking-wider text-[#8e9192] mb-1.5">Recipient Public Key</label>
+                      <input 
+                        type="text"
+                        value={recipientAddress}
+                        onChange={(e) => setRecipientAddress(e.target.value)}
+                        placeholder="e.g. GBBUYER..."
+                        className="w-full bg-[#131313] border border-[#262626] rounded p-2.5 text-xs text-white focus:border-white focus:outline-none font-mono"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wider text-[#8e9192] mb-1.5">Amount (XLM)</label>
+                      <input 
+                        type="number"
+                        step="0.0001"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        placeholder="10.0"
+                        className="w-full bg-[#131313] border border-[#262626] rounded p-2.5 text-xs text-white focus:border-white focus:outline-none font-mono"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="bg-white text-black font-semibold text-xs px-5 py-2.5 rounded hover:bg-zinc-200 transition-colors uppercase tracking-widest font-mono"
+                  >
+                    Send XLM Payment
+                  </button>
+                </form>
+              </div>
+
             </div>
           )}
 
@@ -658,7 +776,10 @@ export default function Home() {
                   <h2 className="text-3xl font-bold text-white tracking-tight">Marketplace Terminal</h2>
                   <p className="text-sm text-[#8e9192] mt-1">Buy and sell institutional-grade tokenized carbon credits.</p>
                 </div>
-                <div className="text-xs text-[#8e9192]">Active Wallet Balance: 10,000 XLM</div>
+                <div className="text-xs text-[#8e9192] flex items-center gap-2">
+                  <span>Active Wallet Balance:</span>
+                  <span className="font-bold text-white font-mono">{walletBalance} XLM</span>
+                </div>
               </div>
 
               {/* List of active listings */}

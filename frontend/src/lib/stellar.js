@@ -5,7 +5,10 @@ import {
   xdr, 
   Keypair, 
   TransactionBuilder, 
-  Networks 
+  Networks,
+  Account,
+  Operation,
+  Asset
 } from "@stellar/stellar-sdk";
 
 // Testnet RPC and Horizon configurations
@@ -21,7 +24,7 @@ export const CONTRACTS = {
   retirement: "CCKX33TYO6FRCJV4BDOO73VVCKIOTF6DNZH6KPAWOXVBML7UGTK7V5JH"
 };
 
-import { isConnected, getPublicKey } from "@stellar/freighter-api";
+import { isConnected, getPublicKey, signTransaction } from "@stellar/freighter-api";
 
 // Check if Freighter wallet is installed in browser
 export async function getFreighterPublicKey() {
@@ -35,6 +38,102 @@ export async function getFreighterPublicKey() {
     console.warn("Freighter connection error:", err);
   }
   return null;
+}
+
+// Fetch the connected wallet's XLM balance from Horizon
+export async function fetchXlmBalance(publicKey) {
+  try {
+    const res = await fetch(`${HORIZON_URL}/accounts/${publicKey}`);
+    if (!res.ok) {
+      // Account might not exist on testnet yet
+      return "0.0000";
+    }
+    const data = await res.json();
+    const nativeBalance = data.balances.find(b => b.asset_type === "native");
+    return nativeBalance ? parseFloat(nativeBalance.balance).toFixed(4) : "0.0000";
+  } catch (err) {
+    console.error("Error fetching XLM balance:", err);
+    return "0.0000";
+  }
+}
+
+// Send an XLM payment transaction on the Stellar testnet
+export async function sendXlmTransaction({ from, to, amount }) {
+  try {
+    // 1. Fetch source account details to get sequence number
+    const res = await fetch(`${HORIZON_URL}/accounts/${from}`);
+    if (!res.ok) {
+      throw new Error("Source account does not exist on testnet. Fund it first using Friendbot.");
+    }
+    const accountData = await res.json();
+
+    // 2. Fetch current fee stats
+    const feeRes = await fetch(`${HORIZON_URL}/fee_stats`);
+    const feeData = await feeRes.json();
+    const baseFee = feeData.fee_charged?.max || "100";
+
+    // 3. Build Stellar Payment Transaction
+    const sourceAccount = new Account(from, accountData.sequence);
+    const transaction = new TransactionBuilder(sourceAccount, {
+      fee: baseFee,
+      networkPassphrase: Networks.TESTNET,
+      timebounds: { minTime: 0, maxTime: 0 }
+    })
+      .addOperation(
+        Operation.payment({
+          destination: to,
+          asset: Asset.native(),
+          amount: amount.toString()
+        })
+      )
+      .setTimeout(180)
+      .build();
+
+    const xdrString = transaction.toXDR();
+
+    // 4. Request Freighter signature
+    const signedXdr = await signTransaction(xdrString, {
+      network: "TESTNET"
+    });
+
+    // 5. Submit transaction to Horizon
+    const submitBody = new FormData();
+    submitBody.append("tx", signedXdr);
+
+    const submitRes = await fetch(`${HORIZON_URL}/transactions`, {
+      method: "POST",
+      body: submitBody
+    });
+    const submitData = await submitRes.json();
+
+    if (!submitRes.ok || submitData.status === "error" || submitData.result_xdr === undefined) {
+      throw new Error(submitData.title || submitData.detail || "Transaction submission failed");
+    }
+
+    return {
+      status: "success",
+      txHash: submitData.hash,
+      ledger: submitData.ledger
+    };
+  } catch (err) {
+    console.error("Payment transaction failed:", err);
+    throw err;
+  }
+}
+
+// Fund account via Friendbot
+export async function fundWithFriendbot(publicKey) {
+  try {
+    const res = await fetch(`https://friendbot.stellar.org/?addr=${publicKey}`);
+    if (!res.ok) {
+      throw new Error("Friendbot service error");
+    }
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Friendbot funding failed:", err);
+    throw err;
+  }
 }
 
 // Call a read-only method on a Soroban contract
