@@ -220,6 +220,12 @@ Push to master
                └── npm run build (Next.js production build)
 ```
 
+### CI/CD Pipeline — GitHub Actions
+![CI/CD Pipeline](sub%20assets/cicd.png)
+
+### Frontend Test Results — Vitest
+![Test Results](sub%20assets/test.png)
+
 ---
 
 ## 🌍 Deployment
