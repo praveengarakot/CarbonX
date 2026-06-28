@@ -1,0 +1,355 @@
+Excellent choice.
+
+**Carbon Credit Exchange** is much stronger than a typical job board or escrow app because it solves a real global problem and naturally requires multiple smart contracts, event streaming, and inter-contract communication.
+
+# Project Concept
+
+**CarbonX — Decentralized Carbon Credit Marketplace for SMEs**
+
+### Problem
+
+Large corporations can participate in carbon credit markets, but:
+
+* Small businesses struggle to access them.
+* Verification is expensive.
+* Trading is fragmented.
+* Carbon credit ownership is often opaque.
+
+### Solution
+
+A Stellar/Soroban-powered marketplace where:
+
+* Verifiers certify carbon reductions.
+* Carbon credits are tokenized on-chain.
+* Businesses can buy/sell credits.
+* Settlement happens automatically.
+
+---
+
+# Architecture
+
+```text
+                    ┌─────────────────┐
+                    │ Verification SC │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ Carbon Registry │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ Marketplace SC  │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ Settlement SC   │
+                    └─────────────────┘
+```
+
+This already satisfies:
+
+✅ Advanced Smart Contracts
+
+✅ Inter-Contract Communication
+
+---
+
+# Contract 1: Verification Contract
+
+Purpose:
+
+Verify that carbon reduction actually occurred.
+
+Example:
+
+```json
+{
+  "project": "Solar Plant Kolkata",
+  "reduction": 120,
+  "unit": "tCO2e"
+}
+```
+
+Verifier approves.
+
+Contract emits:
+
+```rust
+CarbonVerified
+```
+
+---
+
+# Contract 2: Carbon Registry
+
+Stores all carbon credits.
+
+Example:
+
+```json
+{
+  "credit_id": 102,
+  "owner": "businessA",
+  "amount": 120
+}
+```
+
+When verification succeeds:
+
+```text
+Verification Contract
+        ↓
+Registry Contract
+```
+
+creates new credits automatically.
+
+This is inter-contract communication.
+
+---
+
+# Contract 3: Marketplace
+
+Businesses can:
+
+* List credits
+* Buy credits
+* Cancel listings
+
+Example:
+
+```json
+{
+  "credit_id": 102,
+  "price": 50 XLM
+}
+```
+
+Events:
+
+```rust
+CreditListed
+CreditPurchased
+ListingCancelled
+```
+
+---
+
+# Contract 4: Settlement Contract
+
+Handles payment.
+
+Flow:
+
+```text
+Buyer
+   ↓
+Settlement Contract
+   ↓
+Seller
+```
+
+Funds released only after ownership transfer.
+
+Events:
+
+```rust
+PaymentLocked
+PaymentReleased
+```
+
+---
+
+# Event Streaming (Important)
+
+Judges specifically want this.
+
+Emit events for:
+
+```rust
+CarbonVerified
+CreditMinted
+CreditListed
+CreditPurchased
+OwnershipTransferred
+PaymentReleased
+```
+
+Frontend listens in real time.
+
+Show a live activity feed:
+
+```text
+✓ Credit #245 minted
+✓ Credit #245 listed
+✓ Credit #245 purchased
+✓ Ownership transferred
+```
+
+This looks very impressive in demos.
+
+---
+
+# Mobile Responsive Frontend
+
+Pages:
+
+### Dashboard
+
+Shows:
+
+* Credits Owned
+* Credits Sold
+* Carbon Offset Amount
+
+---
+
+### Marketplace
+
+Shows:
+
+```text
+Credit ID
+Amount
+Seller
+Price
+Buy Button
+```
+
+---
+
+### Verification Portal
+
+Verifier approves projects.
+
+---
+
+### Activity Feed
+
+Real-time blockchain events.
+
+---
+
+# Advanced Feature (Leaderboard Booster)
+
+## Carbon Impact Score
+
+Every company gets:
+
+```text
+Carbon Score: 85/100
+```
+
+Based on:
+
+* Credits purchased
+* Credits retired
+* Sustainability activity
+
+Stored on-chain.
+
+This gives the project a unique angle.
+
+---
+
+# Testing
+
+Judges require tests.
+
+### Contract Tests
+
+At least:
+
+```text
+✓ Verify Carbon Project
+✓ Mint Credit
+✓ List Credit
+✓ Purchase Credit
+✓ Transfer Ownership
+```
+
+5+ passing tests.
+
+---
+
+### Frontend Tests
+
+```text
+✓ Marketplace Loads
+✓ Buy Button Works
+✓ Listing Appears
+```
+
+Use Jest/Vitest.
+
+---
+
+# CI/CD
+
+Use:
+
+### GitHub Actions
+
+Workflow:
+
+```text
+Push
+ ↓
+Run Contract Tests
+ ↓
+Run Frontend Tests
+ ↓
+Build
+ ↓
+Deploy Vercel
+```
+
+Screenshot this for submission.
+
+---
+
+# Demo Video Flow (1–2 min)
+
+1. Verifier approves project.
+2. Carbon credits minted.
+3. Marketplace listing appears.
+4. Buyer purchases credits.
+5. Settlement executes.
+6. Activity feed updates live.
+7. Carbon score increases.
+
+This demonstrates almost every judging criterion in under 2 minutes.
+
+# To make it truly leaderboard-worthy
+
+Add one more contract:
+
+### Carbon Retirement Contract
+
+After buying credits:
+
+```text
+Buy Credit
+      ↓
+Retire Credit
+      ↓
+Receive Sustainability Certificate
+```
+
+This creates a 5-contract architecture and shows deeper Soroban expertise than most hackathon submissions.
+
+Final stack:
+
+* Soroban Rust Contracts ×5
+* Next.js
+* Tailwind
+* Stellar SDK
+* GitHub Actions
+* Vercel
+* Vitest/Jest
+* Event Streaming Dashboard
+
+That's a project I would expect to compete for a leaderboard position rather than just pass Level 3.

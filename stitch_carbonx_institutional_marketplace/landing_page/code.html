@@ -1,0 +1,342 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CarbonX - Institutional Carbon Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#1a1b22",
+                    "secondary": "#c6c6cf",
+                    "on-secondary-container": "#b4b4bd",
+                    "outline": "#8e9192",
+                    "surface-container-high": "#2a2a2a",
+                    "primary-container": "#e2e2e2",
+                    "on-error": "#690005",
+                    "surface-variant": "#353534",
+                    "tertiary-container": "#e2e2e2",
+                    "error-container": "#93000a",
+                    "surface-tint": "#c6c6c7",
+                    "primary-fixed": "#e2e2e2",
+                    "on-background": "#e5e2e1",
+                    "primary-fixed-dim": "#c6c6c7",
+                    "surface-bright": "#3a3939",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "tertiary-fixed": "#e2e2e2",
+                    "error": "#ffb4ab",
+                    "on-tertiary-container": "#636565",
+                    "on-surface-variant": "#c4c7c8",
+                    "on-surface": "#e5e2e1",
+                    "primary": "#ffffff",
+                    "on-primary-fixed-variant": "#454747",
+                    "secondary-container": "#45464e",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "secondary-fixed": "#e2e1eb",
+                    "secondary-fixed-dim": "#c6c6cf",
+                    "on-secondary": "#2f3037",
+                    "surface": "#131313",
+                    "background": "#131313",
+                    "on-primary": "#2f3131",
+                    "surface-container": "#201f1f",
+                    "tertiary": "#ffffff",
+                    "on-primary-fixed": "#1a1c1c",
+                    "surface-container-low": "#1c1b1b",
+                    "on-primary-container": "#636565",
+                    "on-secondary-fixed-variant": "#45464e",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "inverse-primary": "#5d5f5f",
+                    "surface-dim": "#131313",
+                    "surface-container-highest": "#353534",
+                    "inverse-on-surface": "#313030",
+                    "surface-container-lowest": "#0e0e0e",
+                    "outline-variant": "#444748",
+                    "on-tertiary": "#2f3131",
+                    "inverse-surface": "#e5e2e1",
+                    "on-error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "64px",
+                    "base": "4px",
+                    "lg": "40px",
+                    "gutter": "24px",
+                    "margin": "32px",
+                    "xs": "8px",
+                    "md": "24px",
+                    "sm": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "headline-lg-mobile": ["Geist"],
+                    "headline-lg": ["Geist"],
+                    "headline-xl": ["Geist"],
+                    "body-md": ["Geist"],
+                    "label-sm": ["Geist"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "1.4", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .font-mono { font-family: 'Geist Mono', monospace; }
+        .grid-bg {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+        /* Custom scrollbar for data tables */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #353534; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444748; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-lg antialiased selection:bg-primary selection:text-on-primary">
+<!-- Suppressed Navigation Shell -->
+<!-- The prompt implies a Landing Page (transactional/linear entry point). Navigation shell suppressed to prioritize Canvas. -->
+<main class="w-full max-w-[1440px] mx-auto min-h-screen relative overflow-hidden flex flex-col">
+<!-- Header / Mini Nav -->
+<header class="w-full flex justify-between items-center px-gutter py-md absolute top-0 z-50">
+<div class="font-headline-md text-primary font-bold tracking-tight">CarbonX</div>
+<nav class="hidden md:flex items-center gap-md">
+<a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest" href="#">Login</a>
+</nav>
+</header>
+<!-- Hero Section -->
+<section class="relative w-full pt-40 pb-xl px-gutter flex flex-col items-center justify-center text-center z-10 grid-bg min-h-[819px]">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background pointer-events-none"></div>
+<div class="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-md">
+<div class="inline-flex items-center gap-xs px-3 py-1 rounded-full border border-outline-variant bg-surface-container-low mb-sm">
+<span class="material-symbols-outlined text-primary text-[14px]">public</span>
+<span class="font-mono text-[10px] text-on-surface-variant uppercase tracking-widest">Institutional Grade Infrastructure</span>
+</div>
+<h1 class="font-headline-xl text-primary max-w-3xl leading-tight">
+                    Carbon Markets for Every Business
+                </h1>
+<p class="font-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                    Verify, tokenize, trade, and retire carbon credits through a transparent blockchain-powered marketplace.
+                </p>
+<div class="flex flex-col sm:flex-row items-center gap-sm mt-lg w-full sm:w-auto">
+<button class="w-full sm:w-auto bg-primary text-on-primary font-label-sm uppercase tracking-widest px-8 py-4 rounded-DEFAULT hover:bg-surface-tint transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+                        Explore Marketplace
+                    </button>
+<button class="w-full sm:w-auto bg-transparent text-primary border border-outline-variant font-label-sm uppercase tracking-widest px-8 py-4 rounded-DEFAULT hover:bg-surface-container transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+                        Verify Carbon Project
+                    </button>
+</div>
+</div>
+<!-- Hero Abstract Visual -->
+<div class="w-full max-w-5xl mx-auto mt-xl relative h-[400px] border border-outline-variant rounded-xl overflow-hidden bg-[#0a0a0a]">
+<div class="absolute inset-0 flex items-center justify-center opacity-30 mix-blend-screen" data-alt="A sophisticated, high-contrast monochrome digital rendering of a glowing abstract network topology representing an institutional blockchain ledger. Sharp geometric nodes connect via thin white beams of light over an infinitely deep pitch-black void. The style is ultra-modern, clinical fintech data visualization, employing stark whites and profound blacks with minimal volumetric fog. Cinematic wide angle." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATy1JImPSI7O50Cic2ixAGZraBoT5KnA5gNcUgb3buw5oqfCFs2hJhtdsAzDB8rWQLH9-vIdLhvoN6oR9ViT5OoYxxaYIQj87FfvnvWsvaThoiBOnieR-KKAzAaEBOu5zNrCo_R5eBqYRvR-v3LXbU8HizLq3T7dbH2JJK209bIBnudgMu1EYZYjQM2n120r_cdcuResuSfrxXXAlLZjYQf_nfwPP742e5i3vbaKNsNVsfQwxe8J6Gzdbc_AevvQNEyBRMdF07fMs6')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10"></div>
+<!-- Floating Data Widgets -->
+<div class="absolute top-md left-md z-20 bg-surface/80 backdrop-blur-md border border-outline-variant rounded-lg p-sm w-48 shadow-2xl">
+<div class="font-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Live Network Hash</div>
+<div class="font-mono text-body-md text-primary truncate">0x7a9c...4f2b</div>
+</div>
+<div class="absolute bottom-md right-md z-20 bg-surface/80 backdrop-blur-md border border-outline-variant rounded-lg p-sm w-56 shadow-2xl">
+<div class="font-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Daily Volume (tCO2e)</div>
+<div class="font-headline-md text-primary">1,245,800</div>
+<div class="flex items-center gap-xs text-primary mt-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span class="font-mono text-[10px]">+4.2% 24h</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section (Bento Grid Style) -->
+<section class="w-full px-gutter py-xl border-t border-outline-variant bg-surface-container-lowest">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xs">
+<!-- Stat 1 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md hover:bg-surface-container transition-colors group">
+<div class="flex items-center justify-between mb-lg">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">generating_tokens</span>
+<span class="font-mono text-[10px] text-on-surface-variant uppercase border border-outline-variant px-2 py-1 rounded">YTD</span>
+</div>
+<div class="font-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Total Credits Issued</div>
+<div class="font-headline-lg text-primary font-mono">45.2M</div>
+</div>
+<!-- Stat 2 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md hover:bg-surface-container transition-colors group">
+<div class="flex items-center justify-between mb-lg">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">eco</span>
+<span class="font-mono text-[10px] text-on-surface-variant uppercase border border-outline-variant px-2 py-1 rounded">Verified</span>
+</div>
+<div class="font-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Credits Retired</div>
+<div class="font-headline-lg text-primary font-mono">12.8M</div>
+</div>
+<!-- Stat 3 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md hover:bg-surface-container transition-colors group">
+<div class="flex items-center justify-between mb-lg">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">domain</span>
+<span class="font-mono text-[10px] text-on-surface-variant uppercase border border-outline-variant px-2 py-1 rounded">Global</span>
+</div>
+<div class="font-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Active Businesses</div>
+<div class="font-headline-lg text-primary font-mono">3,450</div>
+</div>
+<!-- Stat 4 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md hover:bg-surface-container transition-colors group">
+<div class="flex items-center justify-between mb-lg">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">bar_chart</span>
+<span class="font-mono text-[10px] text-on-surface-variant uppercase border border-outline-variant px-2 py-1 rounded">USD</span>
+</div>
+<div class="font-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Carbon Offset Volume</div>
+<div class="font-headline-lg text-primary font-mono">$892M</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="w-full px-gutter py-xl bg-background border-t border-outline-variant">
+<div class="max-w-7xl mx-auto flex flex-col gap-lg">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-md mb-md">
+<div>
+<h2 class="font-headline-lg text-primary mb-xs">Protocol Infrastructure</h2>
+<p class="font-body-md text-on-surface-variant max-w-xl">An end-to-end institutional lifecycle for digital environmental assets.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-xs">
+<!-- Feature 1 -->
+<div class="col-span-1 md:col-span-2 bg-[#111111] border border-[#262626] rounded-xl p-lg flex flex-col justify-between min-h-[300px] relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-surface-variant/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-md text-[32px]">verified_user</span>
+<h3 class="font-headline-md text-primary mb-sm">Verification</h3>
+<p class="font-body-md text-on-surface-variant max-w-sm">Rigorous cryptographic verification of physical carbon projects via satellite telemetry and on-chain MRV oracles.</p>
+</div>
+<div class="z-10 mt-xl flex gap-sm">
+<div class="w-1/3 h-1 bg-primary rounded-full"></div>
+<div class="w-1/3 h-1 bg-surface-variant rounded-full"></div>
+<div class="w-1/3 h-1 bg-surface-variant rounded-full"></div>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="col-span-1 bg-[#111111] border border-[#262626] rounded-xl p-lg flex flex-col justify-between min-h-[300px] group">
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-md text-[32px]">token</span>
+<h3 class="font-headline-md text-primary mb-sm">Tokenization</h3>
+<p class="font-body-md text-on-surface-variant">Minting verified tCO2e into fractional, tradable digital assets.</p>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="col-span-1 bg-[#111111] border border-[#262626] rounded-xl p-lg flex flex-col justify-between min-h-[300px] group">
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-md text-[32px]">candlestick_chart</span>
+<h3 class="font-headline-md text-primary mb-sm">Trading</h3>
+<p class="font-body-md text-on-surface-variant">High-liquidity order books tailored for institutional block trades.</p>
+</div>
+</div>
+<!-- Feature 4 -->
+<div class="col-span-1 bg-[#111111] border border-[#262626] rounded-xl p-lg flex flex-col justify-between min-h-[300px] group">
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-md text-[32px]">handshake</span>
+<h3 class="font-headline-md text-primary mb-sm">Settlement</h3>
+<p class="font-body-md text-on-surface-variant">Instant, atomic settlement (T+0) eliminating counterparty risk.</p>
+</div>
+</div>
+<!-- Feature 5 -->
+<div class="col-span-1 bg-[#111111] border border-[#262626] rounded-xl p-lg flex flex-col justify-between min-h-[300px] group">
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-md text-[32px]">delete_forever</span>
+<h3 class="font-headline-md text-primary mb-sm">Retirement</h3>
+<p class="font-body-md text-on-surface-variant">Permanent ledger burning generating immutable retirement certificates.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Marketplace Preview Data Table -->
+<section class="w-full px-gutter py-xl bg-surface-container-lowest border-t border-outline-variant">
+<div class="max-w-7xl mx-auto">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-primary">Live Order Book</h2>
+<a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-xs" href="#">
+                        View All Markets <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+<div class="w-full overflow-x-auto border border-outline-variant rounded-lg bg-[#111111]">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead>
+<tr class="border-b border-[#262626] bg-[#0a0a0a]">
+<th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-widest">ID</th>
+<th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-widest">Project</th>
+<th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-widest">Country</th>
+<th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-widest text-right">Volume (t)</th>
+<th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-widest text-right">Price/t</th>
+<th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-widest text-center">Status</th>
+</tr>
+</thead>
+<tbody class="font-mono text-body-md text-on-surface">
+<tr class="border-b border-[#262626] hover:bg-surface-container transition-colors">
+<td class="p-4 text-on-surface-variant">CX-001</td>
+<td class="p-4 font-body-md text-primary">Rimba Raya Biodiversity Reserve</td>
+<td class="p-4 flex items-center gap-xs"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">location_on</span> IDN</td>
+<td class="p-4 text-right">50,000</td>
+<td class="p-4 text-right">$12.45</td>
+<td class="p-4 text-center"><span class="inline-block px-2 py-1 bg-[#1a1c1c] border border-outline-variant rounded text-[10px] uppercase tracking-widest">Live</span></td>
+</tr>
+<tr class="border-b border-[#262626] hover:bg-surface-container transition-colors">
+<td class="p-4 text-on-surface-variant">CX-084</td>
+<td class="p-4 font-body-md text-primary">Kariba REDD+ Project</td>
+<td class="p-4 flex items-center gap-xs"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">location_on</span> ZWE</td>
+<td class="p-4 text-right">125,000</td>
+<td class="p-4 text-right">$8.90</td>
+<td class="p-4 text-center"><span class="inline-block px-2 py-1 bg-[#1a1c1c] border border-outline-variant rounded text-[10px] uppercase tracking-widest">Live</span></td>
+</tr>
+<tr class="border-b border-[#262626] hover:bg-surface-container transition-colors">
+<td class="p-4 text-on-surface-variant">CX-112</td>
+<td class="p-4 font-body-md text-primary">Guanaré Forest Plantations</td>
+<td class="p-4 flex items-center gap-xs"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">location_on</span> URY</td>
+<td class="p-4 text-right">25,000</td>
+<td class="p-4 text-right">$15.20</td>
+<td class="p-4 text-center"><span class="inline-block px-2 py-1 bg-[#2a2a2a] text-on-surface-variant border border-outline-variant rounded text-[10px] uppercase tracking-widest">Settling</span></td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="p-4 text-on-surface-variant">CX-204</td>
+<td class="p-4 font-body-md text-primary">Katingan Peatland Restoration</td>
+<td class="p-4 flex items-center gap-xs"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">location_on</span> IDN</td>
+<td class="p-4 text-right">80,000</td>
+<td class="p-4 text-right">$14.10</td>
+<td class="p-4 text-center"><span class="inline-block px-2 py-1 bg-[#1a1c1c] border border-outline-variant rounded text-[10px] uppercase tracking-widest">Live</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Footer Minimal -->
+<footer class="w-full px-gutter py-lg bg-background border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md mt-auto">
+<div class="font-headline-md text-on-surface-variant opacity-50">CarbonX</div>
+<div class="flex gap-md font-label-sm text-on-surface-variant uppercase tracking-widest">
+<a class="hover:text-primary transition-colors" href="#">Terms</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Docs</a>
+</div>
+</footer>
+</main>
+</body></html>
