@@ -129,12 +129,20 @@ export default function Home() {
   };
 
   const connectWallet = async () => {
+    const isFreighterAvailable = typeof window !== "undefined" && (window.freighter || window.stellar);
+    if (!isFreighterAvailable) {
+      alert("Freighter Wallet extension was not detected.\n\nPlease install Freighter from https://www.freighter.app/ to connect a real wallet. Connecting Sandbox Simulated Account instead.");
+    }
+    
     const key = await getFreighterPublicKey();
     if (key) {
       setWalletConnected(true);
       setWalletAddress(key);
       addActivity(`✓ Wallet connected via Freighter: ${key.slice(0, 12)}...`, "system");
     } else {
+      if (isFreighterAvailable) {
+        alert("Freighter is installed, but the connection request was rejected or the wallet is locked. Please unlock Freighter and authorize the app. Connecting Sandbox Account instead.");
+      }
       const fallbackKey = roleAddresses[activeRole];
       setWalletConnected(true);
       setWalletAddress(fallbackKey);
