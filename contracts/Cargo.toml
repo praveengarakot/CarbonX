@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = [
+    "verification-contract",
+    "carbon-registry",
+    "marketplace-contract",
+    "settlement-contract",
+    "retirement-contract",
+]
+
+[workspace.dependencies]
+soroban-sdk = "21.0.0"
