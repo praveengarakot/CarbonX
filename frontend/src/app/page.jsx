@@ -364,12 +364,12 @@ export default function Home() {
     });
   };
 
-  // Helper stats
   const getStats = () => {
     const activeAddress = walletAddress || roleAddresses[activeRole];
-    const owned = credits.filter(c => c.owner === activeAddress && !c.retired).reduce((acc, c) => acc + c.amount, 0);
-    const retired = retiredCredits.filter(c => c.owner === activeAddress).reduce((acc, c) => acc + c.amount, 0);
-    const score = carbonScores[activeAddress] || 50;
+    const isDev = activeRole === "developer";
+    const owned = credits.filter(c => (c.owner === activeAddress || (isDev && c.owner === roleAddresses.developer)) && !c.retired).reduce((acc, c) => acc + c.amount, 0);
+    const retired = retiredCredits.filter(c => c.owner === activeAddress || (isDev && c.owner === roleAddresses.developer)).reduce((acc, c) => acc + c.amount, 0);
+    const score = carbonScores[activeAddress] || carbonScores[roleAddresses[activeRole]] || 50;
     return { owned, retired, score };
   };
 
@@ -848,7 +848,7 @@ export default function Home() {
                   <p className="text-xs text-[#8e9192]">List verified credits that you own to the open market.</p>
                   
                   <div className="space-y-3">
-                    {credits.filter(c => c.owner === (walletAddress || roleAddresses.developer) && !c.retired).map(c => {
+                    {credits.filter(c => (c.owner === walletAddress || c.owner === roleAddresses.developer) && !c.retired).map(c => {
                       const alreadyListed = listings.some(l => l.credit_id === c.id && l.active);
                       if (alreadyListed) return null;
                       return (
@@ -875,7 +875,7 @@ export default function Home() {
                         </div>
                       );
                     })}
-                    {credits.filter(c => c.owner === (walletAddress || roleAddresses.developer) && !c.retired).length === 0 && (
+                    {credits.filter(c => (c.owner === walletAddress || c.owner === roleAddresses.developer) && !c.retired).length === 0 && (
                       <div className="text-xs text-[#8e9192] italic">You have no unlisted verified credits. Submit a project for verification first.</div>
                     )}
                   </div>
@@ -992,7 +992,7 @@ export default function Home() {
                   <h3 className="text-lg font-semibold text-white">Credits Available for Retirement</h3>
                   
                   <div className="space-y-3">
-                    {credits.filter(c => c.owner === (walletAddress || roleAddresses[activeRole]) && !c.retired).map((c) => (
+                    {credits.filter(c => (c.owner === (walletAddress || roleAddresses[activeRole]) || (activeRole === "developer" && c.owner === roleAddresses.developer)) && !c.retired).map((c) => (
                       <div key={c.id} className="p-4 bg-[#1c1b1b] border border-[#262626] rounded-lg flex justify-between items-center">
                         <div>
                           <div className="text-xs font-semibold text-white">{c.project}</div>
@@ -1006,7 +1006,7 @@ export default function Home() {
                         </button>
                       </div>
                     ))}
-                    {credits.filter(c => c.owner === (walletAddress || roleAddresses[activeRole]) && !c.retired).length === 0 && (
+                    {credits.filter(c => (c.owner === (walletAddress || roleAddresses[activeRole]) || (activeRole === "developer" && c.owner === roleAddresses.developer)) && !c.retired).length === 0 && (
                       <div className="text-xs text-[#8e9192] italic">No active credits available to retire in this workspace. Buy credits from the Marketplace.</div>
                     )}
                   </div>
