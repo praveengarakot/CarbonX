@@ -267,7 +267,12 @@ export default function Home() {
 
       setProjects(prev => prev.map(item => {
         if (item.id === projectId) {
-          const creditId = credits.length + 101;
+          const maxCreditId = Math.max(
+            ...credits.map(c => c.id),
+            ...retiredCredits.map(c => c.id),
+            100
+          );
+          const creditId = maxCreditId + 1;
           const newCredit = {
             id: creditId,
             project: item.name,
