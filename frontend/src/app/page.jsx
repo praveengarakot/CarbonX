@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { getFreighterPublicKey, submitSorobanTx, CONTRACTS, fetchXlmBalance, sendXlmTransaction, fundWithFriendbot } from "../lib/stellar";
+import { getFreighterPublicKey, submitSorobanTx, CONTRACTS, fetchXlmBalance, sendXlmTransaction, fundWithFriendbot, isConnected } from "../lib/stellar";
 
 export default function Home() {
   const [inApp, setInApp] = useState(false);
@@ -146,9 +146,15 @@ export default function Home() {
   };
 
   const connectWallet = async () => {
-    const isFreighterAvailable = typeof window !== "undefined" && (window.freighter || window.stellar);
+    const isFreighterAvailable = await isConnected();
     if (!isFreighterAvailable) {
-      alert("Freighter Wallet extension was not detected.\n\nPlease install Freighter from https://www.freighter.app/ to connect a real wallet. Connecting Sandbox Simulated Account instead.");
+      alert("Freighter Wallet extension was not detected.\n\nPlease install Freighter from https://www.freighter.app/ to connect a real wallet. Connecting Sandbox Simulated Account instead.\n\nNOTE: If you are using Brave Browser, make sure to disable Brave Shields for localhost:3000 to allow Freighter to inject itself.");
+      const fallbackKey = roleAddresses[activeRole];
+      setWalletConnected(true);
+      setWalletAddress(fallbackKey);
+      addActivity(`✓ Sandbox Account Connected (Simulated Wallet): ${fallbackKey.slice(0, 12)}...`, "system");
+      refreshBalance(fallbackKey);
+      return;
     }
     
     const key = await getFreighterPublicKey();
@@ -158,9 +164,7 @@ export default function Home() {
       addActivity(`✓ Wallet connected via Freighter: ${key.slice(0, 12)}...`, "system");
       refreshBalance(key);
     } else {
-      if (isFreighterAvailable) {
-        alert("Freighter is installed, but the connection request was rejected or the wallet is locked. Please unlock Freighter and authorize the app. Connecting Sandbox Account instead.");
-      }
+      alert("Freighter is installed, but the connection request was rejected or the wallet is locked. Please unlock Freighter and authorize the app. Connecting Sandbox Account instead.");
       const fallbackKey = roleAddresses[activeRole];
       setWalletConnected(true);
       setWalletAddress(fallbackKey);
