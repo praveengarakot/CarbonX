@@ -267,28 +267,35 @@ export default function Home() {
 
       setProjects(prev => prev.map(item => {
         if (item.id === projectId) {
-          const maxCreditId = Math.max(
+          const maxCreditIdOuter = Math.max(
             ...credits.map(c => c.id),
             ...retiredCredits.map(c => c.id),
             100
           );
-          const creditId = maxCreditId + 1;
-          const newCredit = {
-            id: creditId,
-            project: item.name,
-            project_id: item.id,
-            owner: item.developer,
-            amount: item.amount,
-            retired: false,
-          };
+          const creditIdLog = maxCreditIdOuter + 1;
+
           setCredits(c => {
             if (c.some(x => x.project_id === item.id)) return c;
+            const maxId = Math.max(
+              ...c.map(x => x.id),
+              ...retiredCredits.map(x => x.id),
+              100
+            );
+            const newId = maxId + 1;
+            const newCredit = {
+              id: newId,
+              project: item.name,
+              project_id: item.id,
+              owner: item.developer,
+              amount: item.amount,
+              retired: false,
+            };
             return [...c, newCredit];
           });
           
           addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation verify_project completed`, "system");
           addActivity(`✓ CarbonVerified: Project #${item.id} approved by Verifier`, "verified");
-          addActivity(`✓ CreditMinted: Credit #${creditId} minted to Developer (${item.amount} tCO2e)`, "minted");
+          addActivity(`✓ CreditMinted: Credit #${creditIdLog} minted to Developer (${item.amount} tCO2e)`, "minted");
           
           return { ...item, verified: true, verifier: verifierAddress };
         }
