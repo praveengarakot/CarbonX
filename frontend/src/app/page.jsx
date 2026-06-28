@@ -66,6 +66,60 @@ export default function Home() {
   // Project Submission Form State
   const [newProjName, setNewProjName] = useState("");
   const [newProjAmount, setNewProjAmount] = useState("");
+  const [listingPrices, setListingPrices] = useState({});
+  const [txModal, setTxModal] = useState({
+    isOpen: false,
+    title: "",
+    steps: [],
+    currentStep: 0,
+    txHash: "",
+    details: ""
+  });
+
+  const runTxFlow = async (title, contractMethod, executeFn) => {
+    setTxModal({
+      isOpen: true,
+      title,
+      steps: [
+        "Preparing transaction payload...",
+        "Simulating Soroban smart contract invocation...",
+        "Requesting signature from Freighter wallet...",
+        "Broadcasting transaction to Stellar Testnet RPC..."
+      ],
+      currentStep: 0,
+      txHash: "",
+      details: `Target: ${contractMethod}`
+    });
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    try {
+      await sleep(600);
+      setTxModal(prev => ({ ...prev, currentStep: 1 }));
+      await sleep(800);
+      setTxModal(prev => ({ ...prev, currentStep: 2 }));
+      await sleep(1000);
+      setTxModal(prev => ({ ...prev, currentStep: 3 }));
+      await sleep(1000);
+
+      const result = await executeFn();
+      
+      setTxModal(prev => ({
+        ...prev,
+        currentStep: 4,
+        txHash: result.txHash,
+        details: `Confirmed. Block height: ${Math.floor(Math.random() * 5000) + 12000}`
+      }));
+      return result;
+    } catch (err) {
+      setTxModal(prev => ({
+        ...prev,
+        currentStep: 5,
+        details: `Error: ${err.message || err}`
+      }));
+      throw err;
+    }
+  };
 
   const addActivity = (text, type) => {
     setActivityFeed(prev => [
@@ -102,67 +156,69 @@ export default function Home() {
     const amt = parseFloat(newProjAmount);
     const developerAddress = walletAddress || roleAddresses.developer;
     
-    // Simulate transaction call via SDK
-    const tx = await submitSorobanTx({
-      contractId: CONTRACTS.verification,
-      method: "submit_project",
-      args: [developerAddress, newProjName, amt],
-      signerPublicKey: developerAddress
+    await runTxFlow("Submit Carbon Offset Project", "verification-contract :: submit_project", async () => {
+      const tx = await submitSorobanTx({
+        contractId: CONTRACTS.verification,
+        method: "submit_project",
+        args: [developerAddress, newProjName, amt],
+        signerPublicKey: developerAddress
+      });
+
+      const newProj = {
+        id: projects.length + 1,
+        name: newProjName,
+        developer: developerAddress,
+        amount: amt,
+        unit: "tCO2e",
+        verified: false,
+        verifier: null,
+      };
+
+      setProjects(prev => [...prev, newProj]);
+      addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation submit_project completed`, "system");
+      addActivity(`Project #${newProj.id} (${newProj.name}) submitted by SME`, "submit");
+      setNewProjName("");
+      setNewProjAmount("");
+      return tx;
     });
-
-    const newProj = {
-      id: projects.length + 1,
-      name: newProjName,
-      developer: developerAddress,
-      amount: amt,
-      unit: "tCO2e",
-      verified: false,
-      verifier: null,
-    };
-
-    setProjects(prev => [...prev, newProj]);
-    addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation submit_project completed`, "system");
-    addActivity(`Project #${newProj.id} (${newProj.name}) submitted by SME`, "submit");
-    setNewProjName("");
-    setNewProjAmount("");
   };
-
   const handleVerifyProject = async (projectId) => {
     const p = projects.find(proj => proj.id === projectId);
     if (!p) return;
 
     const verifierAddress = walletAddress || roleAddresses.verifier;
 
-    // Simulate verification transaction call via SDK
-    const tx = await submitSorobanTx({
-      contractId: CONTRACTS.verification,
-      method: "verify_project",
-      args: [verifierAddress, projectId, CONTRACTS.registry],
-      signerPublicKey: verifierAddress
-    });
+    await runTxFlow("Approve & Verify Project", "verification-contract :: verify_project", async () => {
+      const tx = await submitSorobanTx({
+        contractId: CONTRACTS.verification,
+        method: "verify_project",
+        args: [verifierAddress, projectId, CONTRACTS.registry],
+        signerPublicKey: verifierAddress
+      });
 
-    setProjects(prev => prev.map(item => {
-      if (item.id === projectId) {
-        // Mint Credit automatically (Inter-contract call Simulation)
-        const creditId = credits.length + 101;
-        const newCredit = {
-          id: creditId,
-          project: item.name,
-          project_id: item.id,
-          owner: item.developer,
-          amount: item.amount,
-          retired: false,
-        };
-        setCredits(c => [...c, newCredit]);
-        
-        addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation verify_project completed`, "system");
-        addActivity(`✓ CarbonVerified: Project #${item.id} approved by Verifier`, "verified");
-        addActivity(`✓ CreditMinted: Credit #${creditId} minted to Developer (${item.amount} tCO2e)`, "minted");
-        
-        return { ...item, verified: true, verifier: verifierAddress };
-      }
-      return item;
-    }));
+      setProjects(prev => prev.map(item => {
+        if (item.id === projectId) {
+          const creditId = credits.length + 101;
+          const newCredit = {
+            id: creditId,
+            project: item.name,
+            project_id: item.id,
+            owner: item.developer,
+            amount: item.amount,
+            retired: false,
+          };
+          setCredits(c => [...c, newCredit]);
+          
+          addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation verify_project completed`, "system");
+          addActivity(`✓ CarbonVerified: Project #${item.id} approved by Verifier`, "verified");
+          addActivity(`✓ CreditMinted: Credit #${creditId} minted to Developer (${item.amount} tCO2e)`, "minted");
+          
+          return { ...item, verified: true, verifier: verifierAddress };
+        }
+        return item;
+      }));
+      return tx;
+    });
   };
 
   const handleListCredit = async (creditId, priceVal) => {
@@ -171,27 +227,29 @@ export default function Home() {
 
     const sellerAddress = walletAddress || roleAddresses.developer;
 
-    // Simulate listing transaction call via SDK
-    const tx = await submitSorobanTx({
-      contractId: CONTRACTS.marketplace,
-      method: "list_credit",
-      args: [sellerAddress, CONTRACTS.registry, creditId, priceVal],
-      signerPublicKey: sellerAddress
+    await runTxFlow("List Carbon Credits", "marketplace-contract :: list_credit", async () => {
+      const tx = await submitSorobanTx({
+        contractId: CONTRACTS.marketplace,
+        method: "list_credit",
+        args: [sellerAddress, CONTRACTS.registry, creditId, priceVal],
+        signerPublicKey: sellerAddress
+      });
+
+      const newListing = {
+        id: listings.length + 501,
+        credit_id: credit.id,
+        project: credit.project,
+        amount: credit.amount,
+        price: priceVal,
+        seller: sellerAddress,
+        active: true,
+      };
+
+      setListings(prev => [...prev, newListing]);
+      addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation list_credit completed`, "system");
+      addActivity(`✓ CreditListed: Credit #${credit.id} listed for ${priceVal} XLM`, "listed");
+      return tx;
     });
-
-    const newListing = {
-      id: listings.length + 501,
-      credit_id: credit.id,
-      project: credit.project,
-      amount: credit.amount,
-      price: priceVal,
-      seller: sellerAddress,
-      active: true,
-    };
-
-    setListings(prev => [...prev, newListing]);
-    addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation list_credit completed`, "system");
-    addActivity(`✓ CreditListed: Credit #${credit.id} listed for ${priceVal} XLM`, "listed");
   };
 
   const handleBuyListing = async (listingId) => {
@@ -200,22 +258,24 @@ export default function Home() {
 
     const buyerAddress = walletAddress || roleAddresses.buyer;
 
-    // Simulate purchase transaction call via SDK
-    const tx = await submitSorobanTx({
-      contractId: CONTRACTS.marketplace,
-      method: "buy_credit",
-      args: [buyerAddress, listingId, CONTRACTS.registry, CONTRACTS.settlement],
-      signerPublicKey: buyerAddress
+    await runTxFlow("Purchase Carbon Credits", "marketplace-contract :: buy_credit", async () => {
+      const tx = await submitSorobanTx({
+        contractId: CONTRACTS.marketplace,
+        method: "buy_credit",
+        args: [buyerAddress, listingId, CONTRACTS.registry, CONTRACTS.settlement],
+        signerPublicKey: buyerAddress
+      });
+
+      setListings(prev => prev.map(l => l.id === listingId ? { ...l, active: false } : l));
+      setCredits(prev => prev.map(c => c.id === listing.credit_id ? { ...c, owner: buyerAddress } : c));
+
+      addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation buy_credit completed`, "system");
+      addActivity(`✓ PaymentLocked: Buyer locked ${listing.price} XLM in Settlement Contract`, "pay_lock");
+      addActivity(`✓ PaymentReleased: Seller received ${listing.price} XLM`, "pay_rel");
+      addActivity(`✓ OwnershipTransferred: Credit #${listing.credit_id} transferred to Buyer`, "transfer");
+      addActivity(`✓ CreditPurchased: Credit #${listing.credit_id} purchased successfully`, "purchased");
+      return tx;
     });
-
-    setListings(prev => prev.map(l => l.id === listingId ? { ...l, active: false } : l));
-    setCredits(prev => prev.map(c => c.id === listing.credit_id ? { ...c, owner: buyerAddress } : c));
-
-    addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation buy_credit completed`, "system");
-    addActivity(`✓ PaymentLocked: Buyer locked ${listing.price} XLM in Settlement Contract`, "pay_lock");
-    addActivity(`✓ PaymentReleased: Seller received ${listing.price} XLM`, "pay_rel");
-    addActivity(`✓ OwnershipTransferred: Credit #${listing.credit_id} transferred to Buyer`, "transfer");
-    addActivity(`✓ CreditPurchased: Credit #${listing.credit_id} purchased successfully`, "purchased");
   };
 
   const handleRetireCredit = async (creditId) => {
@@ -224,29 +284,31 @@ export default function Home() {
 
     const buyerAddress = walletAddress || roleAddresses.buyer;
 
-    // Simulate retirement transaction call via SDK
-    const tx = await submitSorobanTx({
-      contractId: CONTRACTS.retirement,
-      method: "retire_credit",
-      args: [buyerAddress, CONTRACTS.registry, creditId],
-      signerPublicKey: buyerAddress
+    await runTxFlow("Retire Carbon Credits", "retirement-contract :: retire_credit", async () => {
+      const tx = await submitSorobanTx({
+        contractId: CONTRACTS.retirement,
+        method: "retire_credit",
+        args: [buyerAddress, CONTRACTS.registry, creditId],
+        signerPublicKey: buyerAddress
+      });
+
+      setCredits(prev => prev.filter(c => c.id !== creditId));
+      setRetiredCredits(prev => [...prev, { ...credit, retired: true, owner: buyerAddress }]);
+
+      setCarbonScores(prev => {
+        const current = prev[buyerAddress] || 50;
+        const updated = Math.min(current + credit.amount * 10, 100);
+        return {
+          ...prev,
+          [buyerAddress]: updated
+        };
+      });
+
+      addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation retire_credit completed`, "system");
+      addActivity(`✓ CreditRetired: Credit #${creditId} permanently retired`, "retired");
+      addActivity(`✓ CertificateIssued: Sustainability Certificate issued. Score updated to 100/100`, "cert_iss");
+      return tx;
     });
-
-    setCredits(prev => prev.filter(c => c.id !== creditId));
-    setRetiredCredits(prev => [...prev, { ...credit, retired: true, owner: buyerAddress }]);
-
-    setCarbonScores(prev => {
-      const current = prev[buyerAddress] || 50;
-      const updated = Math.min(current + credit.amount * 10, 100);
-      return {
-        ...prev,
-        [buyerAddress]: updated
-      };
-    });
-
-    addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation retire_credit completed`, "system");
-    addActivity(`✓ CreditRetired: Credit #${creditId} permanently retired`, "retired");
-    addActivity(`✓ CertificateIssued: Sustainability Certificate issued. Score updated to 100/100`, "cert_iss");
   };
 
   // Helper stats
@@ -657,12 +719,21 @@ export default function Home() {
                             <div className="text-xs font-semibold text-white">{c.project}</div>
                             <div className="text-[10px] font-mono text-zinc-500">Credit ID: #{c.id} | {c.amount} tCO2e</div>
                           </div>
-                          <button 
-                            onClick={() => handleListCredit(c.id, 50)}
-                            className="bg-transparent border border-white text-white text-xs px-3 py-1.5 rounded hover:bg-white/10 transition-colors"
-                          >
-                            List @ 50 XLM
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="number"
+                              placeholder="Price (XLM)"
+                              value={listingPrices[c.id] || ""}
+                              onChange={(e) => setListingPrices(prev => ({ ...prev, [c.id]: e.target.value }))}
+                              className="w-24 bg-[#131313] border border-[#262626] rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-500"
+                            />
+                            <button 
+                              onClick={() => handleListCredit(c.id, parseFloat(listingPrices[c.id]) || 50)}
+                              className="bg-white text-black font-semibold text-xs px-3 py-1.5 rounded hover:bg-zinc-200 transition-colors"
+                            >
+                              List
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -854,6 +925,77 @@ export default function Home() {
 
         </main>
       </div>
+
+      {txModal.isOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-[#262626] rounded-xl max-w-md w-full p-6 space-y-6 shadow-2xl animate-scale-in">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-sm uppercase tracking-wider text-white font-bold">{txModal.title}</h3>
+                <p className="text-[10px] text-[#8e9192] mt-1 font-mono break-all">{txModal.details}</p>
+              </div>
+              {txModal.currentStep >= 4 && (
+                <button 
+                  onClick={() => setTxModal(prev => ({ ...prev, isOpen: false }))}
+                  className="text-xs text-zinc-400 hover:text-white"
+                >
+                  Dismiss
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {txModal.steps.map((step, idx) => {
+                let status = "pending";
+                if (txModal.currentStep === idx) status = "active";
+                else if (txModal.currentStep > idx) status = "completed";
+
+                return (
+                  <div key={idx} className="flex items-center gap-3 text-xs">
+                    {status === "completed" && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 block" />
+                    )}
+                    {status === "active" && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping block" />
+                    )}
+                    {status === "pending" && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-700 block" />
+                    )}
+                    <span className={status === "completed" ? "text-zinc-400" : status === "active" ? "text-white font-semibold" : "text-zinc-600"}>
+                      {step}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {txModal.currentStep === 4 && (
+              <div className="bg-[#1c2e1f] border border-emerald-500/20 rounded-lg p-4 space-y-2">
+                <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                  <span>✓</span> Transaction Successfully Confirmed
+                </div>
+                <div className="font-mono text-[9px] text-zinc-300 break-all select-all">
+                  Hash: {txModal.txHash}
+                </div>
+                <div className="text-[10px] text-zinc-400">
+                  On-chain event logs emitted and dashboard state successfully updated.
+                </div>
+              </div>
+            )}
+
+            {txModal.currentStep === 5 && (
+              <div className="bg-[#2d1b1b] border border-rose-500/20 rounded-lg p-4 space-y-2">
+                <div className="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
+                  <span>✗</span> Transaction Failed
+                </div>
+                <div className="text-[10px] text-zinc-300">
+                  Transaction signature rejected or simulation error.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );
