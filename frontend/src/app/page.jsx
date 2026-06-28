@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getFreighterPublicKey, submitSorobanTx, CONTRACTS, fetchXlmBalance, sendXlmTransaction, fundWithFriendbot, isConnected, connectWithWalletsKit } from "../lib/stellar";
 
 export default function Home() {
@@ -18,14 +18,15 @@ export default function Home() {
     verifier: "GBVERIFIERSTELLARVERIFY4R5T7Y8U9I0O1P2Q3W4B",
   };
 
-  const refreshBalance = async (addr) => {
+  const refreshBalance = useCallback(async (addr) => {
     const target = addr || walletAddress || roleAddresses[activeRole];
     if (!target) return;
     setIsRefreshingBalance(true);
     const bal = await fetchXlmBalance(target);
     setWalletBalance(bal);
     setIsRefreshingBalance(false);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletAddress, activeRole]);
 
   useEffect(() => {
     // Attempt auto-connect if Freighter is open/authorized
@@ -38,10 +39,13 @@ export default function Home() {
       }
     };
     autoConnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshBalance();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletAddress, activeRole]);
 
   // State Management (Simulating the 5-contract Soroban state)
