@@ -146,7 +146,8 @@ export default function Home() {
   };
 
   const connectWallet = async () => {
-    const isFreighterAvailable = await isConnected();
+    const connectionStatus = await isConnected();
+    const isFreighterAvailable = connectionStatus && connectionStatus.isConnected;
     if (!isFreighterAvailable) {
       alert("Freighter Wallet extension was not detected.\n\nPlease install Freighter from https://www.freighter.app/ to connect a real wallet.\n\nNOTE: If you are using Brave Browser, make sure to disable Brave Shields for localhost:3000 to allow Freighter to inject itself.");
       return;

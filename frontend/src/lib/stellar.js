@@ -24,15 +24,18 @@ export const CONTRACTS = {
   retirement: "CCKX33TYO6FRCJV4BDOO73VVCKIOTF6DNZH6KPAWOXVBML7UGTK7V5JH"
 };
 
-import { isConnected, getPublicKey, signTransaction } from "@stellar/freighter-api";
+import { isConnected, getAddress, signTransaction } from "@stellar/freighter-api";
+export { isConnected };
 
 // Check if Freighter wallet is installed in browser
 export async function getFreighterPublicKey() {
   try {
-    const connected = await isConnected();
-    if (connected) {
-      const publicKey = await getPublicKey();
-      return publicKey;
+    const res = await isConnected();
+    if (res && res.isConnected) {
+      const addressRes = await getAddress();
+      if (addressRes && addressRes.address) {
+        return addressRes.address;
+      }
     }
   } catch (err) {
     console.warn("Freighter connection error:", err);
@@ -92,9 +95,15 @@ export async function sendXlmTransaction({ from, to, amount }) {
     const xdrString = transaction.toXDR();
 
     // 4. Request Freighter signature
-    const signedXdr = await signTransaction(xdrString, {
-      network: "TESTNET"
+    const signResult = await signTransaction(xdrString, {
+      networkPassphrase: Networks.TESTNET
     });
+
+    if (signResult.error) {
+      throw new Error(signResult.error);
+    }
+
+    const signedXdr = signResult.signedTxXdr;
 
     // 5. Submit transaction to Horizon
     const submitBody = new FormData();
