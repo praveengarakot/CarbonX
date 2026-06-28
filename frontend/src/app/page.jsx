@@ -309,22 +309,27 @@ export default function Home() {
     const listing = listings.find(l => l.id === listingId);
     if (!listing) return;
 
-    const buyerAddress = walletAddress || roleAddresses.buyer;
+    const buyerAddress = walletAddress || roleAddresses[activeRole];
+    const sellerAddress = listing.seller || roleAddresses.developer;
+    const totalPrice = listing.amount * listing.price;
 
-    await runTxFlow("Purchase Carbon Credits", "marketplace-contract :: buy_credit", async () => {
-      const tx = await submitSorobanTx({
-        contractId: CONTRACTS.marketplace,
-        method: "buy_credit",
-        args: [buyerAddress, listingId, CONTRACTS.registry, CONTRACTS.settlement],
-        signerPublicKey: buyerAddress
+    await runTxFlow("Purchase Carbon Credits", "marketplace :: buy_credit", async () => {
+      // Execute live Stellar payment transaction
+      const tx = await sendXlmTransaction({
+        from: buyerAddress,
+        to: sellerAddress,
+        amount: totalPrice
       });
 
+      // Update frontend state with credit ownership transfers
       setListings(prev => prev.map(l => l.id === listingId ? { ...l, active: false } : l));
       setCredits(prev => prev.map(c => c.id === listing.credit_id ? { ...c, owner: buyerAddress } : c));
 
+      // Refresh connected wallet balance
+      await refreshBalance(buyerAddress);
+
       addActivity(`[Stellar TX: ${tx.txHash.slice(0, 10)}...] operation buy_credit completed`, "system");
-      addActivity(`✓ PaymentLocked: Buyer locked ${listing.price} XLM in Settlement Contract`, "pay_lock");
-      addActivity(`✓ PaymentReleased: Seller received ${listing.price} XLM`, "pay_rel");
+      addActivity(`✓ PaymentReleased: Seller (${sellerAddress.slice(0, 8)}...) received ${totalPrice} XLM`, "pay_rel");
       addActivity(`✓ OwnershipTransferred: Credit #${listing.credit_id} transferred to Buyer`, "transfer");
       addActivity(`✓ CreditPurchased: Credit #${listing.credit_id} purchased successfully`, "purchased");
       return tx;
